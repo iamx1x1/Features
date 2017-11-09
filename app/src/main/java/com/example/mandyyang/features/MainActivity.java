@@ -269,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
         processedView.setImageBitmap(processedBitmap);
     }
 
-    //Canny Edge Detection
+    //Canny Edge Detection_
  void Canny() {
      Mat grayMat = new Mat();
      Mat cannyEdges = new Mat();
