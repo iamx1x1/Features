@@ -5,4 +5,8 @@
         android:title="@string/open_gallery"
         android:orderInCategory="100"
         app:showAsAction="never"/>
+
+    <item android:id="@+id/DoG" android:title="@string/DoG"
+        android:orderInCategory="100" app:showAsAction="never" />
+
 </menu>

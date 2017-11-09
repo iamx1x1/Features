@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Features</string>
     <string name="open_gallery">LoadImage</string>
+    <string name="DoG">Difference of Gaussians</string>
 </resources>

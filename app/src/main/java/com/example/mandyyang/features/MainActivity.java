@@ -26,6 +26,10 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.core.Core;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.IOException;
 
@@ -38,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap currentBitmap,processedBitmap;
     private static final int ACTION_PICK_PHOTO = 1;
     static int REQUEST_READ_EXTERNAL_STORAGE = 0;
-    private ImageView originalView, processedView;
+    private ImageView originalView, processedView,PrecessedImage;
 
     static boolean read_external_storage_granted = false;
 
@@ -190,21 +194,56 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    public boolean onOptionsItemSelected(MenuItem item){
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
         int id = item.getItemId();
 
-        if(id == R.id.open_gallery){
-
-            if(read_external_storage_granted){
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.open_gallery) {
+            if(read_external_storage_granted) {
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("image/*");
                 startActivityForResult(intent, ACTION_PICK_PHOTO);
-            }else{
-                Log.i("OpenCV","read_external_storage_granted=0");
+            }else {
+                Log.i("OenpCV", "read_external_storage_granted = false");
                 return true;
             }
+            //image_Dog
+        } else if (id == R.id.DoG) {
+            processedView = (ImageView)findViewById(R.id.ProcessedImage);
+            //Apply Difference of Gaussian
+            DifferenceOfGaussian();
         }
         return super.onOptionsItemSelected(item);
     }
+
+        //Difference of Gaussian
+        public void DifferenceOfGaussian() {
+            Mat grayMat = new Mat();
+            Mat blur1 = new Mat();
+            Mat blur2 = new Mat();
+
+            //Converting the image to grayscale
+            Imgproc.cvtColor(originalMat, grayMat, Imgproc.COLOR_BGR2GRAY);
+
+            Imgproc.GaussianBlur(grayMat, blur1, new Size(15, 15), 5);
+            Imgproc.GaussianBlur(grayMat, blur2, new Size(21, 21), 5);
+
+            //Subtracting the two blurred images
+            Mat DoG = new Mat();
+            Core.absdiff(blur1, blur2, DoG);
+
+            //Inverse Binary Thresholding
+            Core.multiply(DoG, new Scalar(100), DoG);
+            Imgproc.threshold(DoG, DoG, 50, 255, Imgproc.THRESH_BINARY_INV);
+
+            // processedBitmap = currentBitmap.copy(Bitmap.Config.ARGB_8888,ture);
+            processedBitmap = Bitmap.createBitmap(currentBitmap.getWidth(),currentBitmap.getHeight(),currentBitmap.getConfig());
+            //Converting Mat back to Bitmap
+            Utils.matToBitmap(DoG, processedBitmap);
+            processedView.setImageBitmap(processedBitmap);
+        }
+
 }
 
