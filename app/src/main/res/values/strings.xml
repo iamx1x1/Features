@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Features</string>
+    <string name="open_gallery">LoadImage</string>
+</resources>
