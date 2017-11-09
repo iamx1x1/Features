@@ -2,4 +2,6 @@
     <string name="app_name">Features</string>
     <string name="open_gallery">LoadImage</string>
     <string name="DoG">Difference of Gaussians</string>
+    <string name="CannyEdges">Canny Edges</string>
+    <string name="SobelFilter">Sobel Filter</string>
 </resources>
