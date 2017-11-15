@@ -336,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
         Core.normalize(tempDst, tempDstNorm, 0, 255, Core.NORM_MINMAX);
         Core.convertScaleAbs(tempDstNorm, corners);
 
-// 在新的图像上绘制角点
+// 在新的图像上绘制角点_
         Random r = new Random();
         for (int i = 0; i < tempDstNorm.cols(); i++) {
             for (int j = 0; j < tempDstNorm.rows(); j++) {
