@@ -4,4 +4,5 @@
     <string name="DoG">Difference of Gaussians</string>
     <string name="CannyEdges">Canny Edges</string>
     <string name="SobelFilter">Sobel Filter</string>
+    <string name="HarrisCorners">Harris Corners</string>
 </resources>
