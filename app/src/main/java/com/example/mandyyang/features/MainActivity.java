@@ -118,13 +118,13 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             //  if not select image alertOneButton()
-        }else if
-                (id != R.id.Rectangles && id !=R.id.open_gallery)
+//        }else if
+             //   (id !=R.id.open_gallery)
 //        (id != R.id.SobelFilter && id != R.id.open_gallery)||
 //        (id != R.id.HarrisCorners && id != R.id.open_gallery)||
 //        (id != R.id.DoG && id != R.id.open_gallery))
-                {
-            alertOneButton();
+//                {
+//            alertOneButton();
 
         }else if (id == R.id.DoG) {
                 processedView = (ImageView) findViewById(R.id.ProcessedImage);
@@ -145,6 +145,19 @@ public class MainActivity extends AppCompatActivity {
                 processedView = (ImageView) findViewById(R.id.ProcessedImage);
                 //Apply Difference of Gaussian
                 HarrisCorner();
+
+        } else if (id == R.id.HoughLines) {
+            processedView = (ImageView) findViewById(R.id.ProcessedImage);
+            //Apply Hough Lines
+            HoughLines();
+        } else if (id == R.id.HoughCircles) {
+            processedView = (ImageView) findViewById(R.id.ProcessedImage);
+            //Apply Hough Circles
+            HoughCircles();
+        } else if (id == R.id.Contours) {
+            processedView = (ImageView) findViewById(R.id.ProcessedImage);
+            //Apply contours
+            Contours();
 
             } else if (id == R.id.Rectangles) {
           processedView = (ImageView) findViewById(R.id.ProcessedImage);
@@ -420,19 +433,116 @@ public class MainActivity extends AppCompatActivity {
         //loadImageToImageView();
     }
 
-    //alertdialog,if not select image
-    public void alertOneButton() {
 
-        new AlertDialog.Builder(MainActivity.this)
-                .setTitle("警示訊息")
-                .setMessage("請先選擇圖片，再進行特效選擇")
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
 
-                        dialog.cancel();
-                    }
-                }).show();
+    void HoughLines() {
+
+        Mat grayMat = new Mat();
+        Mat cannyEdges = new Mat();
+        Mat lines = new Mat();
+
+        //Converting the image to grayscale
+        Imgproc.cvtColor(originalMat, grayMat, Imgproc.COLOR_BGR2GRAY);
+
+        Imgproc.Canny(grayMat, cannyEdges, 10, 100);
+
+        Imgproc.HoughLinesP(cannyEdges, lines, 1, Math.PI / 180, 50, 20, 20);
+
+        Mat houghLines = new Mat();
+        houghLines.create(cannyEdges.rows(), cannyEdges.cols(), CvType.CV_8UC1);
+
+        //Drawing lines on the image
+        for (int i = 0; i < lines.cols(); i++) {
+            double[] points = lines.get(0, i);
+            double x1, y1, x2, y2;
+
+            x1 = points[0];
+            y1 = points[1];
+            x2 = points[2];
+            y2 = points[3];
+
+            Point pt1 = new Point(x1, y1);
+            Point pt2 = new Point(x2, y2);
+
+            //Drawing lines on an image
+            Imgproc.line(houghLines, pt1, pt2, new Scalar(255, 0, 0), 1);
+        }
+
+        processedBitmap = Bitmap.createBitmap(currentBitmap.getWidth(), currentBitmap.getHeight(), currentBitmap.getConfig());
+        //Converting Mat back to Bitmap
+        Utils.matToBitmap(houghLines, processedBitmap);
+        processedView.setImageBitmap(processedBitmap);
+        //loadImageToImageView();
     }
+
+    void HoughCircles() {
+        Mat grayMat = new Mat();
+        Mat cannyEdges = new Mat();
+        Mat circles = new Mat();
+
+        //Converting the image to grayscale
+        Imgproc.cvtColor(originalMat, grayMat, Imgproc.COLOR_BGR2GRAY);
+
+        Imgproc.Canny(grayMat, cannyEdges, 10, 100);
+
+        Imgproc.HoughCircles(cannyEdges, circles, Imgproc.CV_HOUGH_GRADIENT, 1, cannyEdges.rows() / 15);//, grayMat.rows() / 8);
+
+        Mat houghCircles = new Mat();
+        houghCircles.create(cannyEdges.rows(), cannyEdges.cols(), CvType.CV_8UC1);
+
+        //Drawing lines on the image
+        for (int i = 0; i < circles.cols(); i++) {
+            double[] parameters = circles.get(0, i);
+            double x, y;
+            int r;
+
+            x = parameters[0];
+            y = parameters[1];
+            r = (int) parameters[2];
+
+            Point center = new Point(x, y);
+
+            //Drawing circles on an image
+            Imgproc.circle(houghCircles, center, r, new Scalar(255, 0, 0), 1);
+        }
+
+        processedBitmap = Bitmap.createBitmap(currentBitmap.getWidth(), currentBitmap.getHeight(), currentBitmap.getConfig());
+        //Converting Mat back to Bitmap
+        Utils.matToBitmap(houghCircles, processedBitmap);
+        processedView.setImageBitmap(processedBitmap);
+        //loadImageToImageView();
+    }
+
+    void Contours() {
+        Mat grayMat = new Mat();
+        Mat cannyEdges = new Mat();
+        Mat hierarchy = new Mat();
+
+        List<MatOfPoint> contourList = new ArrayList<MatOfPoint>(); //A list to store all the contours
+
+        //Converting the image to grayscale
+        Imgproc.cvtColor(originalMat, grayMat, Imgproc.COLOR_BGR2GRAY);
+
+        Imgproc.Canny(originalMat, cannyEdges, 10, 100);
+
+        //finding contours
+        Imgproc.findContours(cannyEdges, contourList, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        //Drawing contours on a new image
+        Mat contours = new Mat();
+        contours.create(cannyEdges.rows(), cannyEdges.cols(), CvType.CV_8UC3);
+        Random r = new Random();
+        for (int i = 0; i < contourList.size(); i++) {
+            Imgproc.drawContours(contours, contourList, i, new Scalar(r.nextInt(255), r.nextInt(255), r.nextInt(255)), -1);
+        }
+        processedBitmap = Bitmap.createBitmap(currentBitmap.getWidth(), currentBitmap.getHeight(), currentBitmap.getConfig());
+        //Converting Mat back to Bitmap
+        Utils.matToBitmap(contours, processedBitmap);
+        processedView.setImageBitmap(processedBitmap);
+        //loadImageToImageView();
+    }
+
+
 
     }
 
