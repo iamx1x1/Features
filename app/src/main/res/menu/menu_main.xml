@@ -4,7 +4,8 @@
     <item android:id="@+id/open_gallery"
         android:title="@string/open_gallery"
         android:orderInCategory="100"
-        app:showAsAction="never"/>
+        app:showAsAction="never"
+        android:state_pressed="true"/>
 
     <item android:id="@+id/DoG" android:title="@string/DoG"
         android:orderInCategory="100" app:showAsAction="never" />
@@ -16,6 +17,9 @@
         android:orderInCategory="100" app:showAsAction="never" />
 
     <item android:id="@+id/HarrisCorners" android:title="@string/HarrisCorners"
+        android:orderInCategory="100" app:showAsAction="never" />
+
+    <item android:id="@+id/Rectangles" android:title="@string/Rectangles"
         android:orderInCategory="100" app:showAsAction="never" />
 
 

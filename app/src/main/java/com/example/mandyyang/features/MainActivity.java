@@ -1,6 +1,7 @@
 package com.example.mandyyang.features;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -19,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.app.AlertDialog;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -69,10 +71,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_3_0, this, mOpenCVCallBack);
         originalView = (ImageView) findViewById(R.id.originalImage);
+
 
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -87,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onResume() {
+
         super.onResume();
     }
 
@@ -100,40 +105,59 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
 
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
+            //noinspection SimplifiableIfStatement
         if (id == R.id.open_gallery) {
             if (read_external_storage_granted) {
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("image/*");
                 startActivityForResult(intent, ACTION_PICK_PHOTO);
+
             } else {
+
                 Log.i("OenpCV", "read_external_storage_granted = false");
                 return true;
             }
-        } else if (id == R.id.DoG) {
-            processedView = (ImageView) findViewById(R.id.ProcessedImage);
-            //Apply Difference of Gaussian
-            DifferenceOfGaussian();
-            //Image_Canny
-        } else if (id == R.id.CannyEdges) {
-            processedView = (ImageView) findViewById(R.id.ProcessedImage);
-            //Apply Difference of Gaussian
-            Canny();
+            //  if not select image alertOneButton()
+        }else if
+                (id != R.id.Rectangles && id !=R.id.open_gallery)
+//        (id != R.id.SobelFilter && id != R.id.open_gallery)||
+//        (id != R.id.HarrisCorners && id != R.id.open_gallery)||
+//        (id != R.id.DoG && id != R.id.open_gallery))
+                {
+            alertOneButton();
 
-        } else if (id == R.id.SobelFilter) {
-            processedView = (ImageView) findViewById(R.id.ProcessedImage);
-            //Apply Difference of Gaussian
-            Sobel();
+        }else if (id == R.id.DoG) {
+                processedView = (ImageView) findViewById(R.id.ProcessedImage);
+                //Apply Difference of Gaussian
+                DifferenceOfGaussian();
+                //Image_Canny
+            } else if (id == R.id.CannyEdges) {
+                processedView = (ImageView) findViewById(R.id.ProcessedImage);
+                //Apply Difference of Gaussian
+                Canny();
 
-        } else if (id == R.id.HarrisCorners) {
-            processedView = (ImageView) findViewById(R.id.ProcessedImage);
-            //Apply Difference of Gaussian
-            HarrisCorner();
+            } else if (id == R.id.SobelFilter) {
+                processedView = (ImageView) findViewById(R.id.ProcessedImage);
+                //Apply Difference of Gaussian
+                Sobel();
 
-        }
+            } else if (id == R.id.HarrisCorners) {
+                processedView = (ImageView) findViewById(R.id.ProcessedImage);
+                //Apply Difference of Gaussian
+                HarrisCorner();
+
+            } else if (id == R.id.Rectangles) {
+          processedView = (ImageView) findViewById(R.id.ProcessedImage);
+          //canny+rectangles
+          Rectangles();
+          Sobel();
+
+      }
         return super.onOptionsItemSelected(item);
+
     }
+
+
 
 
     @Override
@@ -247,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Difference of Gaussian
+    //Difference of Gaussian 高斯差
     public void DifferenceOfGaussian() {
         Mat grayMat = new Mat();
         Mat blur1 = new Mat();
@@ -274,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
         processedView.setImageBitmap(processedBitmap);
     }
 
-    //Canny Edge Detection_
+    //Canny Edge Detection_ 找邊緣
     void Canny() {
         Mat grayMat = new Mat();
         Mat cannyEdges = new Mat();
@@ -286,7 +310,7 @@ public class MainActivity extends AppCompatActivity {
         processedView.setImageBitmap(processedBitmap);
 
     }
-
+//邊緣偵測
     void Sobel() {
         Mat grayMat = new Mat();
         Mat sobel = new Mat(); //Mat to sote the final result
@@ -321,7 +345,7 @@ public class MainActivity extends AppCompatActivity {
         processedView.setImageBitmap(processedBitmap);
     }
 
-    //HarrisCorner
+    //HarrisCorner 角點偵測
     void HarrisCorner() {
 
         Mat grayMat = new Mat();
@@ -351,10 +375,65 @@ public class MainActivity extends AppCompatActivity {
             processedBitmap = Bitmap.createBitmap(currentBitmap.getWidth(), currentBitmap.getHeight(), currentBitmap.getConfig());
             Utils.matToBitmap(corners, processedBitmap);
             processedView.setImageBitmap(processedBitmap);
-
-
         }
         }
+
+    void Rectangles() {
+        Mat grayMat = new Mat();
+        Mat cannyEdges = new Mat();
+        Mat hierarchy = new Mat();
+        // Mat thresHold = new Mat();
+        Mat blurRed = new Mat();
+
+        List<MatOfPoint> contourList = new
+                ArrayList<MatOfPoint>();
+        //A list to store all the contours        //Converting the image to grayscale
+        Imgproc.cvtColor(originalMat,grayMat,Imgproc.COLOR_BGR2GRAY);
+        Imgproc.GaussianBlur(grayMat,blurRed, new Size(3,3),0,0);
+        Imgproc.Canny(blurRed, cannyEdges,50, 150);
+        //Imgproc.threshold(cannyEdges,thresHold,10,255, Imgproc.THRESH_BINARY_INV);
+
+
+        //finding contours
+        Imgproc.findContours(cannyEdges,contourList,hierarchy,Imgproc.RETR_EXTERNAL,Imgproc.CHAIN_APPROX_SIMPLE);
+
+        //Drawing contours on a new image
+        Mat contours = new Mat();
+        contours.create(cannyEdges.rows(),cannyEdges.cols(),CvType.CV_8UC3);
+
+
+        for(int i = 0; i < contourList.size(); i++) {
+            Imgproc.drawContours(contours, contourList, i, new Scalar(0, 255, 0), 1);
+        }
+
+        for(int idx = 0; idx >=0; idx=(int) hierarchy.get(0,idx)[0]) {
+            MatOfPoint matOfPoint = contourList.get(idx);
+            Rect rect = Imgproc.boundingRect(matOfPoint);
+            Imgproc.rectangle(contours, new Point(rect.x,rect.y), new Point(rect.x+rect.width,rect.y+rect.height), new Scalar(255, 0, 0, 255), 1);
+        }
+
+
+        processedBitmap = Bitmap.createBitmap(currentBitmap.getWidth(), currentBitmap.getHeight(), currentBitmap.getConfig());
+        //Converting Mat back to Bitmap
+        Utils.matToBitmap(contours, processedBitmap);
+        processedView.setImageBitmap(processedBitmap);
+        //loadImageToImageView();
+    }
+
+    //alertdialog,if not select image
+    public void alertOneButton() {
+
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("警示訊息")
+                .setMessage("請先選擇圖片，再進行特效選擇")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+
+                        dialog.cancel();
+                    }
+                }).show();
+    }
+
     }
 
 
