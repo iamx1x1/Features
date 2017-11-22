@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
           processedView = (ImageView) findViewById(R.id.ProcessedImage);
           //canny+rectangles
           Rectangles();
-          Sobel();
+          //Sobel();
 
       }
         return super.onOptionsItemSelected(item);
@@ -395,16 +395,16 @@ public class MainActivity extends AppCompatActivity {
         Mat grayMat = new Mat();
         Mat cannyEdges = new Mat();
         Mat hierarchy = new Mat();
-        // Mat thresHold = new Mat();
+         Mat thresHold = new Mat();
         Mat blurRed = new Mat();
 
         List<MatOfPoint> contourList = new
                 ArrayList<MatOfPoint>();
         //A list to store all the contours        //Converting the image to grayscale
-        Imgproc.cvtColor(originalMat,grayMat,Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(originalMat,grayMat,Imgproc.COLOR_RGB2BGR);
         Imgproc.GaussianBlur(grayMat,blurRed, new Size(3,3),0,0);
-        Imgproc.Canny(blurRed, cannyEdges,50, 150);
-        //Imgproc.threshold(cannyEdges,thresHold,10,255, Imgproc.THRESH_BINARY_INV);
+        Imgproc.Canny(blurRed, cannyEdges,80, 100);
+        Imgproc.threshold(cannyEdges,thresHold,10,255, Imgproc.THRESH_BINARY_INV);
 
 
         //finding contours
@@ -412,17 +412,17 @@ public class MainActivity extends AppCompatActivity {
 
         //Drawing contours on a new image
         Mat contours = new Mat();
-        contours.create(cannyEdges.rows(),cannyEdges.cols(),CvType.CV_8UC3);
+        contours.create(cannyEdges.rows(),cannyEdges.cols(),CvType.CV_8UC1);
 
 
         for(int i = 0; i < contourList.size(); i++) {
-            Imgproc.drawContours(contours, contourList, i, new Scalar(0, 255, 0), 1);
+            Imgproc.drawContours(contours, contourList, i, new Scalar(255, 255, 255), 1);
         }
 
         for(int idx = 0; idx >=0; idx=(int) hierarchy.get(0,idx)[0]) {
             MatOfPoint matOfPoint = contourList.get(idx);
             Rect rect = Imgproc.boundingRect(matOfPoint);
-            Imgproc.rectangle(contours, new Point(rect.x,rect.y), new Point(rect.x+rect.width,rect.y+rect.height), new Scalar(255, 0, 0, 255), 1);
+            Imgproc.rectangle(contours, new Point(rect.x,rect.y), new Point(rect.x+rect.width,rect.y+rect.height), new Scalar(255, 100, 100, 255), 1);
         }
 
 
@@ -432,6 +432,7 @@ public class MainActivity extends AppCompatActivity {
         processedView.setImageBitmap(processedBitmap);
         //loadImageToImageView();
     }
+
 
 
 
@@ -521,7 +522,7 @@ public class MainActivity extends AppCompatActivity {
         List<MatOfPoint> contourList = new ArrayList<MatOfPoint>(); //A list to store all the contours
 
         //Converting the image to grayscale
-        Imgproc.cvtColor(originalMat, grayMat, Imgproc.COLOR_BGR2GRAY);
+       Imgproc.cvtColor(originalMat, grayMat, Imgproc.COLOR_BGR2GRAY);
 
         Imgproc.Canny(originalMat, cannyEdges, 10, 100);
 
@@ -542,8 +543,17 @@ public class MainActivity extends AppCompatActivity {
         //loadImageToImageView();
     }
 
+    public void alertOneButton() {
 
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("message")
+                .setMessage("請先選擇圖片")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
 
+                        dialog.cancel();
+                    }
+                }).show();
     }
 
-
+    }
